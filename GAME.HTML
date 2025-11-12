@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Click Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 40px;
+    }
+    #gameArea {
+      margin-top: 40px;
+    }
+    #btn {
+      padding: 20px 40px;
+      font-size: 20px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #btn:hover {
+      background: #45a049;
+    }
+    #score {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Click the Button Game 🎯</h1>
+  <p>Click the button as many times as you can in 10 seconds!</p>
+
+  <div id="gameArea">
+    <button id="btn">Click Me!</button>
+    <div id="score">Score: 0</div>
+    <div id="timer">Time left: 10s</div>
+  </div>
+
+  <script>
+    let score = 0;
+    let timeLeft = 10;
+    let playing = false;
+    const btn = document.getElementById("btn");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+
+    btn.addEventListener("click", () => {
+      if (!playing) return;
+      score++;
+      scoreEl.textContent = "Score: " + score;
+    });
+
+    function startGame() {
+      score = 0;
+      timeLeft = 10;
+      playing = true;
+      scoreEl.textContent = "Score: 0";
+      timerEl.textContent = "Time left: 10s";
+
+      const countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = "Time left: " + timeLeft + "s";
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          playing = false;
+          timerEl.textContent = "Game Over!";
+          alert("Time's up! Your score: " + score);
+        }
+      }, 1000);
+    }
+
+    // Start automatically when page loads
+    window.onload = startGame;
+  </script><br><br>
+<a href="LION.HTML"target="_blank">click here</a>
+</body>
+</html>

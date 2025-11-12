@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini Math Solver</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22c55e;
+      --danger: #ef4444;
+    }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 32px 20px 8px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: 0.4px;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .container {
+      max-width: 920px;
+      margin: 24px auto 80px;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(6px);
+      border: 1px solid #262b3a;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 900px) {
+      .grid-2 { grid-template-columns: 1.2fr 0.8fr; }
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #d1d5db;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 12px 10px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: var(--text);
+      outline: none;
+    }
+    input[type="text"]::placeholder { color: #64748b; }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--accent);
+      color: #052e1d;
+      font-weight: 700;
+      transition: transform 0.04s ease, filter 0.2s ease;
+    }
+    button:hover { filter: brightness(1.06); }
+    button:active { transform: translateY(1px); }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .muted { color: var(--muted); }
+    .output {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 80px;
+    }
+    .bad { color: var(--danger); }
+    .ok { color: var(--accent); }
+    .hint { font-size: 0.9rem; color: #9aa5b1; }
+    .pill {
+      display: inline-block;
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-right: 8px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mini Math Solver</h1>
+    <p>Type a problem and get a step-by-step solution for common topics.</p>
+    <div class="examples">
+      <span class="pill">Solve: 2x + 5 = 19</span>
+      <span class="pill">Quadratic: x^2 - 5x + 6 = 0</span>
+      <span class="pill">Percent: 18% of 250</span>
+      <span class="pill">Fraction: 84/126</span>
+      <span class="pill">Slope: through (2,3) and (6,15)</span>
+    </div>
+  </header>
+
+  <div class="container grid-2">
+    <div class="card">
+      <h2 style="margin:0 0 10px;">Solver</h2>
+      <div class="row">
+        <div style="flex:1;">
+          <label for="type">Problem type</label>
+          <select id="type">
+            <option value="linear">Solve linear equation ax + b = c</option>
+            <option value="quadratic">Quadratic roots ax^2 + bx + c = 0</option>
+            <option value="fraction">Simplify fraction n/d</option>
+            <option value="percent">Percent of a number</option>
+            <option value="slope">Slope between two points</option>
+            <option value="evaluate">Evaluate expression at x</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="inputs" style="margin-top:12px;"></div>
+
+      <div class="row" style="margin-top:12px;">
+        <button id="solveBtn">Solve</button>
+        <button id="clearBtn" style="background:#60a5fa;color:#06223a;">Clear</button>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>Solution</label>
+        <div id="output" class="output"></div>
+      </div>
+
+      <p class="hint" style="margin-top:10px;">
+        Tip: Switch problem type to see different input fields. Use integers or decimals.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin:0 0 10px;">Quick examples</h2>
+      <div style="display:grid;gap:10px;">
+        <button class="ex" data-type="linear" data-a="2" data-b="5" data-c="19">Linear: 2x + 5 = 19</button>
+        <button class="ex" data-type="quadratic" data-a="1" data-b="-5" data-c="6">Quadratic: x^2 - 5x + 6 = 0</button>
+        <button class="ex" data-type="fraction" data-n="84" data-d="126">Fraction: 84/126</button>
+        <button class="ex" data-type="percent" data-p="18" data-n="250">Percent: 18% of 250</button>
+        <button class="ex" data-type="slope" data-x1="2" data-y1="3" data-x2="6" data-y2="15">Slope: (2,3) & (6,15)</button>
+        <button class="ex" data-type="evaluate" data-exp="3x^2 - 4x + 1" data-x="2">Evaluate: 3x^2-4x+1 at x=2</button>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>What this solves</label>
+        <ul>
+          <li><strong>Linear:</strong> Finds \(x\) from \(ax + b = c\).</li>
+          <li><strong>Quadratic:</strong> Uses discriminant \(D = b^2 - 4ac\) to get real/complex roots.</li>
+          <li><strong>Fraction:</strong> Reduces \(\frac{n}{d}\) by greatest common divisor.</li>
+          <li><strong>Percent:</strong> Computes \(\frac{p}{100} \cdot n\).</li>
+          <li><strong>Slope:</strong> Calculates \(m = \frac{y_2 - y_1}{x_2 - x_1}\).</li>
+          <li><strong>Evaluate:</strong> Substitutes \(x\) into a polynomial expression.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>Made for learning—keep it simple, check your steps.</footer>
+
+  <script>
+    const inputsEl = document.getElementById('inputs');
+    const outputEl = document.getElementById('output');
+    const typeEl = document.getElementById('type');
+
+    const templates = {
+      linear: () => `
+        <label>Enter a, b, c for ax + b = c</label>
+        <div class="row">
+          <input type="text" id="a" placeholder="a (e.g., 2)" />
+          <input type="text" id="b" placeholder="b (e.g., 5)" />
+          <input type="text" id="c" placeholder="c (e.g., 19)" />
+        </div>
+      `,
+      quadratic: () => `
+        <label>Enter a, b, c for ax^2 + bx + c = 0</label>
+        <div class="row">
+          <input type="text" id="qa" placeholder="a (e.g., 1)" />
+          <input type="text" id="qb" placeholder="b (e.g., -5)" />
+          <input type="text" id="qc" placeholder="c (e.g., 6)" />
+        </div>
+      `,
+      fraction: () => `
+        <label>Enter numerator n and denominator d</label>
+        <div class="row">
+          <input type="text" id="n" placeholder="n (e.g., 84)" />
+          <input type="text" id="d" placeholder="d (e.g., 126)" />
+        </div>
+      `,
+      percent: () => `
+        <label>Enter percent p and number n</label>
+        <div class="row">
+          <input type="text" id="p" placeholder="p% (e.g., 18)" />
+          <input type="text" id="pn" placeholder="n (e.g., 250)" />
+        </div>
+      `,
+      slope: () => `
+        <label>Enter two points (x1, y1), (x2, y2)</label>
+        <div class="row">
+          <input type="text" id="x1" placeholder="x1" />
+          <input type="text" id="y1" placeholder="y1" />
+          <input type="text" id="x2" placeholder="x2" />
+          <input type="text" id="y2" placeholder="y2" />
+        </div>
+      `,
+      evaluate: () => `
+        <label>Enter polynomial in x and the value of x</label>
+        <div class="row">
+          <input type="text" id="exp" placeholder="e.g., 3x^2 - 4x + 1" />
+          <input type="text" id="xval" placeholder="x (e.g., 2)" />
+        </div>
+      `,
+    };
+
+    function renderInputs() {
+      inputsEl.innerHTML = templates[typeEl.value]();
+      outputEl.textContent = '';
+    }
+    typeEl.addEventListener('change', renderInputs);
+    renderInputs();
+
+    function toNum(v) {
+      const x = Number(String(v).trim());
+      return Number.isFinite(x) ? x : null;
+    }
+    function gcd(a, b) {
+      a = Math.abs(a); b = Math.abs(b);
+      while (b) [a, b] = [b, a % b];
+      return a || 1;
+    }
+    function formatComplex(re, im) {
+      const r = Number(re.toFixed(6));
+      const i = Number(im.toFixed(6));
+      if (Math.abs(i) < 1e-12) return r.toString();
+      const sign = i >= 0 ? '+' : '-';
+      return `${r} ${sign} ${Math.abs(i)}i`;
+    }
+    function evalPoly(expr, x) {
+      // Very simple polynomial evaluator: supports +, -, *, ^, numbers, and x (no parentheses)
+      // Example: "3x^2 - 4x + 1"
+      const sanitized = expr.replace(/\s+/g, '')
+        .replace(/(\d)x/g, '$1*x') // 3x -> 3*x
+        .replace(/x(\d)/g, 'x*$1'); // x3 -> x*3 (rare)
+      // Replace powers x^n with Math.pow(x,n)
+      const powReplaced = sanitized.replace(/x\^(-?\d+)/g, (_, n) => `Math.pow(x,${n})`)
+        .replace(/(\d+|\d*\.\d+)\^(-?\d+)/g, (_, a, n) => `Math.pow(${a},${n})`);
+      const xVal = x;
+      try {
+        // eslint-disable-next-line no-new-func
+        const f = new Function('x', `return ${powReplaced.replace(/x(?![a-zA-Z])/g, 'x')};`);
+        const result = f(xVal);
+        return Number.isFinite(result) ? result : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function solve() {
+      outputEl.textContent = '';
+      const type = typeEl.value;
+
+      if (type === 'linear') {
+        const a = toNum(document.getElementById('a').value);
+        const b = toNum(document.getElementById('b').value);
+        const c = toNum(document.getElementById('c').value);
+        if (a === null || b === null || c === null) {
+          outputEl.innerHTML = '<span class="bad">Please enter valid numbers for a, b, c.</span>'; return;
+        }
+        if (Math.abs(a) < 1e-12) {
+          if (Math.abs(b - c) < 1e-12) {
+            outputEl.textContent =
+              'Step 1: Equation is 0·x + b = c.\nStep 2: b equals c, so every x is a solution (infinitely many).';
+          } else {
+            outputEl.textContent =
+              'Step 1: Equation is 0·x + b = c.\nStep 2: b ≠ c, so no solution exists.';
+          }
+          return;
+        }
+        const x = (c - b) / a;
+        outputEl.textContent =
+          `Step 1: ax + b = c → ax = c - b.\nStep 2: x = (c - b)/a = (${c} - ${b})/${a}.\nStep 3: x = ${x}.`;
+        return;
+      }
+
+      if (type === 'quadratic') {
+        const a = toNum(document.getElementById('qa').value);
+        const b = toNum(document.getElementById('qb').value);
+        const c = toNum(document.getElementById('qc').value);
+        if (a === null || b === null || c === null) {
+          outputEl.innerHTML = '<span class="bad">Please enter valid numbers for a, b, c.</span>'; return;
+        }
+        if (Math.abs(a) < 1e-12) {
+          outputEl.innerHTML = '<span class="bad">a must be nonzero for a quadratic. Try the linear solver.</span>';
+          return;
+        }
+        const D = b*b - 4*a*c;
+        let text = `Step 1: Discriminant D = b^2 - 4ac = ${b*b} - 4·${a}·${c} = ${D}.\n`;
+        if (D > 0) {
+          const r1 = (-b + Math.sqrt(D)) / (2*a);
+          const r2 = (-b - Math.sqrt(D)) / (2*a);
+          text += `Step 2: Two real roots.\nStep 3: x₁ = ${r1}, x₂ = ${r2}.`;
+        } else if (Math.abs(D) < 1e-12) {
+          const r = (-b) / (2*a);
+          text += `Step 2: One repeated real root.\nStep 3: x = ${r}.`;
+        } else {
+          const re = (-b) / (2*a);
+          const im = Math.sqrt(-D) / (2*a);
+          text += `Step 2: Complex roots.\nStep 3: x₁ = ${formatComplex(re, im)}, x₂ = ${formatComplex(re, -im)}.`;
+        }
+        outputEl.textContent = text;
+        return;
+      }
+
+      if (type === 'fraction') {
+        const n = toNum(document.getElementById('n').value);
+        const d = toNum(document.getElementById('d').value);
+        if (n === null || d === null) {
+          outputEl.innerHTML = '<span class="bad">Please enter valid integers for n and d.</span>'; return;
+        }
+        if (Math.abs(d) < 1e-12) {
+          outputEl.innerHTML = '<span class="bad">Denominator cannot be 0.</span>'; return;
+        }
+        const g = gcd(n, d);
+        const sn = n / g, sd = d / g;
+        outputEl.textContent =
+          `Step 1: gcd(${n}, ${d}) = ${g}.\nStep 2: Divide numerator and denominator by gcd.\nStep 3: ${n}/${d} = ${sn}/${sd}.`;
+        return;
+      }
+
+      if (type === 'percent') {
+        const p = toNum(document.getElementById('p').value);
+        const n = toNum(document.getElementById('pn').value);
+        if (p === null || n === null) {
+          outputEl.innerHTML = '<span class="bad">Please enter valid numbers for p and n.</span>'; return;
+        }
+        const value = (p/100) * n;
+        outputEl.textContent =
+          `Step 1: Convert percent: p/100 = ${p}/100.\nStep 2: Multiply by n.\nStep 3: ${p}% of ${n} = ${value}.`;
+        return;
+      }
+
+      if (type === 'slope') {
+        const x1 = toNum(document.getElementById('x1').value);
+        const y1 = toNum(document.getElementById('y1').value);
+        const x2 = toNum(document.getElementById('x2').value);
+        const y2 = toNum(document.getElementById('y2').value);
+        if ([x1,y1,x2,y2].some(v => v === null)) {
+          outputEl.innerHTML = '<span class="bad">Please enter valid numbers for x1, y1, x2, y2.</span>'; return;
+        }
+        if (Math.abs(x2 - x1) < 1e-12) {
+          outputEl.textContent = 'Step 1: Δx = 0.\nStep 2: Vertical line → slope undefined.';
+          return;
+        }
+        const m = (y2 - y1) / (x2 - x1);
+        outputEl.textContent =
+          `Step 1: Δy = ${y2} - ${y1} = ${y2 - y1}, Δx = ${x2} - ${x1} = ${x2 - x1}.\nStep 2: m = Δy / Δx.\nStep 3: m = ${m}.`;
+        return;
+      }
+
+      if (type === 'evaluate') {
+        const expr = document.getElementById('exp').value || '';
+        const x = toNum(document.getElementById('xval').value);
+        if (!expr.trim() || x === null) {
+          outputEl.innerHTML = '<span class="bad">Enter an expression and a numeric x.</span>'; return;
+        }
+        const val = evalPoly(expr, x);
+        if (val === null) {
+          outputEl.innerHTML = '<span class="bad">Could not parse expression. Use a polynomial in x (e.g., 3x^2 - 4x + 1).</span>';
+          return;
+        }
+        outputEl.textContent =
+          `Step 1: Substitute x = ${x}.\nStep 2: Evaluate the terms.\nStep 3: ${expr} at x=${x} equals ${val}.`;
+        return;
+      }
+    }
+
+    document.getElementById('solveBtn').addEventListener('click', solve);
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      renderInputs();
+      outputEl.textContent = '';
+    });
+
+    document.querySelectorAll('.ex').forEach(btn => {
+      btn.addEventListener('click', () => {
+        typeEl.value = btn.dataset.type;
+        renderInputs();
+        // Prefill fields
+        for (const [k, v] of Object.entries(btn.dataset)) {
+          const el = document.getElementById(k);
+          if (el) el.value = v;
+        }
+        solve();
+      });
+    });
+  </script>
+</body>
+</html>
